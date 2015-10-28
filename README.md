@@ -4,6 +4,7 @@ This interface layer handles the communication with HDFS via the `hdfs` interfac
 protocol.  It is intended for internal use within the Hadoop cluster charms.
 For typical usage, [interface-hadoop-plugin][] should be used instead.
 
+
 # Usage
 
 ## Requires
@@ -69,6 +70,7 @@ def remove_ssh_key():
     utils.remove_ssh_key()
 ```
 
+
 ## Provides
 
 A charm providing this interface is providing the HDFS service.
@@ -118,6 +120,19 @@ def register_datanode(hdfs):
 def register_secondary(hdfs):
     hdfs.send_ssh_key(utils.get_ssh_key())
 ```
+
+
+# Contact Information
+
+- <bigdata@lists.ubuntu.com>
+
+
+# Hadoop
+
+- [Apache Hadoop](http://hadoop.apache.org/) home page
+- [Apache Hadoop bug trackers](http://hadoop.apache.org/issue_tracking.html)
+- [Apache Hadoop mailing lists](http://hadoop.apache.org/mailing_lists.html)
+- [Apache Hadoop Juju Charm](http://jujucharms.com/?text=hadoop)
 
 
 [interface-hadoop-plugin]: https://github.com/juju-solutions/interface-hadoop-plugin/

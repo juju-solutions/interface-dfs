@@ -34,7 +34,7 @@ This interface layer will set the following states, as appropriate:
     the service has registered itself as a DataNode or a SecondaryNameNode.
     The SSH key can be accessed via the `ssh_key()` method.
 
-For example, a typical client respond to `hdfs.ready`:
+For example, a typical client would respond to `hdfs.ready`:
 
 ```python
 @when('flume.installed', 'hdfs.ready')

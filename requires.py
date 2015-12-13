@@ -15,14 +15,19 @@ import json
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
-from charms.reactive.helpers import data_changed
 
 from charmhelpers.core import hookenv
 
 
-class HDFS(RelationBase):
+class HDFSRequires(RelationBase):
     scope = scopes.GLOBAL
-    auto_accessors = ['spec', 'port', 'webhdfs-port', 'ssh-key']
+    auto_accessors = ['port', 'webhdfs-port', 'ssh-key']
+
+    def local_hostname(self):
+        return hookenv.local_unit().replace('/', '-')
+
+    def spec(self):
+        return json.loads(self.get_remote('spec', '{}'))
 
     def host(self):
         return self.get_remote('private-address')
@@ -30,7 +35,7 @@ class HDFS(RelationBase):
     def hosts_map(self):
         return json.loads(self.get_remote('hosts-map', '{}'))
 
-    def hdsf_ready(self):
+    def hdfs_ready(self):
         return self.get_remote('hdfs-ready', 'false').lower() == 'true'
 
     @hook('{requires:hdfs}-relation-joined')
@@ -39,13 +44,31 @@ class HDFS(RelationBase):
 
     @hook('{requires:hdfs}-relation-changed')
     def changed(self):
-        if all(self.spec(), self.host(), self.port(), self.webhdfs_port(), self.hdfs_ready()):
+        if all([self.spec(), self.host(), self.port(), self.webhdfs_port()]):
+            self.set_state('{relation_name}.available')
+        else:
+            self.remove_state('{relation_name}.available')
+
+        if self.local_hostname() in self.hosts_map().values():
+            self.set_state('{relation_name}.registered')
+        else:
+            self.remove_state('{relation_name}.registered')
+
+        if all([self.spec(), self.host(), self.port(), self.webhdfs_port(), self.hdfs_ready()]):
             self.set_state('{relation_name}.ready')
+        else:
+            self.remove_state('{relation_name}.ready')
+
         if self.ssh_key():
             self.set_state('{relation_name}.ssh_key.available')
+        else:
+            self.remove_state('{relation_name}.ssh_key.available')
 
-    @hook('{requires:hdfs}-relation-broken')
+    @hook('{requires:hdfs}-relation-{departed,broken}')
     def departed(self):
+        self.remove_state('{relation_name}.related')
+        self.remove_state('{relation_name}.available')
+        self.remove_state('{relation_name}.registered')
         self.remove_state('{relation_name}.ready')
         self.remove_state('{relation_name}.ssh_key.available')
 

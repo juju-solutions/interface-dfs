@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
@@ -17,7 +19,7 @@ from charms.reactive import scopes
 from jujubigdata import utils
 
 
-class HDFS(RelationBase):
+class HDFSProvides(RelationBase):
     scope = scopes.UNIT
 
     @hook('{provides:hdfs}-relation-joined')
@@ -90,7 +92,7 @@ class HDFS(RelationBase):
 
     def send_spec(self, spec):
         for conv in self.conversations():
-            conv.set_remote('spec', spec)
+            conv.set_remote('spec', json.dumps(spec))
 
     def send_ports(self, port, webhdfs_port):
         for conv in self.conversations():
@@ -105,7 +107,7 @@ class HDFS(RelationBase):
 
     def send_hosts_map(self, hosts_map):
         for conv in self.conversations():
-            conv.set_remote('hosts-map', hosts_map)
+            conv.set_remote('hosts-map', json.dumps(hosts_map))
 
     def send_ssh_key(self, ssh_key):
         for conv in self.conversations():

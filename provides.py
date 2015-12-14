@@ -15,6 +15,9 @@ import json
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
+from charms.reactive.bus import get_states
+
+from charmhelpers.core import hookenv
 
 from jujubigdata import utils
 
@@ -37,6 +40,17 @@ class HDFSProvides(RelationBase):
 
     @hook('{provides:hdfs}-relation-departed')
     def departed(self):
+        conv = self.conversation()
+        if asbool(conv.get_remote('datanode')):
+            conv.add_state('{relation_name}.datanode.leaving')
+            conv.remove_state('{relation_name}.datanode.connected')
+        if asbool(conv.get_remote('secondary')):
+            conv.add_state('{relation_name}.secondary.leaving')
+            conv.remove_state('{relation_name}.secondary.connected')
+        hookenv.log('Departed states: {}'.format(get_states().keys()))
+
+    @hook('{provides:hdfs}-relation-broken')
+    def broken(self):
         conv = self.conversation()
         conv.remove_state('{relation_name}.client.connected')
         conv.remove_state('{relation_name}.datanode.connected')

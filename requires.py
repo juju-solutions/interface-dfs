@@ -15,75 +15,54 @@ import json
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
-from charms.reactive.bus import get_states
-
-from charmhelpers.core import hookenv
 
 
 class HDFSRequires(RelationBase):
     scope = scopes.GLOBAL
-    auto_accessors = ['port', 'webhdfs-port', 'ssh-key']
+    auto_accessors = ['ip_addr', 'port', 'webhdfs-port']
 
-    def local_hostname(self):
-        return hookenv.local_unit().replace('/', '-')
+    def set_spec(self, spec):
+        """
+        Set the local spec.
+
+        Should be called after ``{relation_name}.related``.
+        """
+        conv = self.conversation()
+        conv.set_local('spec', json.dumps(spec))
 
     def spec(self):
-        return json.loads(self.get_remote('spec', '{}'))
-
-    def host(self):
-        return self.get_remote('private-address')
-
-    def hosts_map(self):
-        return json.loads(self.get_remote('hosts-map', '{}'))
+        conv = self.conversation()
+        return json.loads(conv.get_remote('spec', '{}'))
 
     def hdfs_ready(self):
-        return self.get_remote('hdfs-ready', 'false').lower() == 'true'
+        conv = self.conversation()
+        return conv.get_remote('hdfs-ready', 'false').lower() == 'true'
 
     @hook('{requires:hdfs}-relation-joined')
     def joined(self):
-        self.set_state('{relation_name}.related')
+        conv = self.conversation()
+        conv.set_state('{relation_name}.related')
 
     @hook('{requires:hdfs}-relation-changed')
     def changed(self):
-        hookenv.log('Data: {}'.format({
-            'spec': self.spec(),
-            'host': self.host(),
-            'port': self.port(),
-            'webhdfs_port': self.webhdfs_port(),
-            'hdfs_ready': self.hdfs_ready(),
-            'hosts_map': self.hosts_map(),
-            'local_hostname': self.local_hostname(),
-        }))
-        self.toggle_state('{relation_name}.available',
-                          active=all([self.spec(), self.host(), self.port(), self.webhdfs_port()]))
+        conv = self.conversation()
+        available = all([self.spec(), self.ip(), self.port(), self.webhdfs_port()])
+        spec_matches = self._spec_match()
+        ready = self.hdfs_ready()
 
-        self.toggle_state('{relation_name}.registered',
-                          active=self.local_hostname() in self.hosts_map().values())
-
-        self.toggle_state('{relation_name}.ready',
-                          active=all([self.spec(), self.host(), self.port(), self.webhdfs_port(), self.hdfs_ready()]))
-
-        self.toggle_state('{relation_name}.ssh_key.available',
-                          active=self.ssh_key())
-        hookenv.log('States: {}'.format(get_states().keys()))
+        conv.toggle_state('{relation_name}.spec.mismatch', available and not spec_matches)
+        conv.toggle_state('{relation_name}.ready', available and spec_matches and ready)
 
     @hook('{requires:hdfs}-relation-{departed,broken}')
     def departed(self):
         self.remove_state('{relation_name}.related')
-        self.remove_state('{relation_name}.available')
-        self.remove_state('{relation_name}.registered')
+        self.remove_state('{relation_name}.spec.mismatch')
         self.remove_state('{relation_name}.ready')
-        self.remove_state('{relation_name}.ssh_key.available')
 
-    def register_datanode(self):
-        self.set_remote(
-            datanode=True,
-            hostname=self.local_hostname(),
-        )
-
-    def register_secondary(self, port):
-        self.set_remote(
-            secondary=True,
-            hostname=self.local_hostname(),
-            port=port,
-        )
+    def _spec_match(self):
+        conv = self.conversation()
+        local_spec = json.loads(conv.get_local('spec', '{}'))
+        remote_spec = json.loads(conv.get_remote('spec', '{}'))
+        for key, value in local_spec.items():
+            if value != remote_spec.get(key):
+                return False

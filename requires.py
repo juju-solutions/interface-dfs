@@ -46,7 +46,7 @@ class HDFSRequires(RelationBase):
     @hook('{requires:hdfs}-relation-changed')
     def changed(self):
         conv = self.conversation()
-        available = all([self.spec(), self.ip(), self.port(), self.webhdfs_port()])
+        available = all([self.spec(), self.ip_addr(), self.port(), self.webhdfs_port()])
         spec_matches = self._spec_match()
         ready = self.hdfs_ready()
 

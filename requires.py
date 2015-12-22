@@ -15,6 +15,9 @@ import json
 from charms.reactive import RelationBase
 from charms.reactive import hook
 from charms.reactive import scopes
+from charms.reactive.bus import get_states
+
+from charmhelpers.core import hookenv
 
 
 class HDFSRequires(RelationBase):
@@ -30,9 +33,13 @@ class HDFSRequires(RelationBase):
         conv = self.conversation()
         conv.set_local('spec', json.dumps(spec))
 
-    def spec(self):
+    def hdfs_spec(self):
         conv = self.conversation()
-        return json.loads(conv.get_remote('spec', '{}'))
+        return json.loads(conv.get_remote('spec', 'null'))
+
+    def local_spec(self):
+        conv = self.conversation()
+        return json.loads(conv.get_local('spec', 'null'))
 
     def hdfs_ready(self):
         conv = self.conversation()
@@ -46,23 +53,34 @@ class HDFSRequires(RelationBase):
     @hook('{requires:hdfs}-relation-changed')
     def changed(self):
         conv = self.conversation()
-        available = all([self.spec(), self.ip_addr(), self.port(), self.webhdfs_port()])
+        hookenv.log('Data: {}'.format({
+            'hdfs_spec': self.hdfs_spec(),
+            'local_spec': self.local_spec(),
+            'ip_addr': self.ip_addr(),
+            'port': self.port(),
+            'webhdfs_port': self.webhdfs_port(),
+        }))
+        available = all([self.hdfs_spec(), self.ip_addr(), self.port(), self.webhdfs_port()])
         spec_matches = self._spec_match()
         ready = self.hdfs_ready()
 
         conv.toggle_state('{relation_name}.spec.mismatch', available and not spec_matches)
         conv.toggle_state('{relation_name}.ready', available and spec_matches and ready)
 
-    @hook('{requires:hdfs}-relation-{departed,broken}')
+        hookenv.log('States: {}'.format(set(get_states().keys())))
+
+    @hook('{requires:hdfs}-relation-departed')
     def departed(self):
         self.remove_state('{relation_name}.related')
         self.remove_state('{relation_name}.spec.mismatch')
         self.remove_state('{relation_name}.ready')
 
     def _spec_match(self):
-        conv = self.conversation()
-        local_spec = json.loads(conv.get_local('spec', '{}'))
-        remote_spec = json.loads(conv.get_remote('spec', '{}'))
+        local_spec = self.local_spec()
+        hdfs_spec = self.hdfs_spec()
+        if None in (local_spec, hdfs_spec):
+            return False
         for key, value in local_spec.items():
-            if value != remote_spec.get(key):
+            if value != hdfs_spec.get(key):
                 return False
+        return True

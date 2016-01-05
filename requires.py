@@ -24,7 +24,7 @@ class HDFSRequires(RelationBase):
     scope = scopes.GLOBAL
     auto_accessors = ['ip_addr', 'port', 'webhdfs-port']
 
-    def set_spec(self, spec):
+    def set_local_spec(self, spec):
         """
         Set the local spec.
 
@@ -33,7 +33,7 @@ class HDFSRequires(RelationBase):
         conv = self.conversation()
         conv.set_local('spec', json.dumps(spec))
 
-    def hdfs_spec(self):
+    def remote_spec(self):
         conv = self.conversation()
         return json.loads(conv.get_remote('spec', 'null'))
 
@@ -54,13 +54,17 @@ class HDFSRequires(RelationBase):
     def changed(self):
         conv = self.conversation()
         hookenv.log('Data: {}'.format({
-            'hdfs_spec': self.hdfs_spec(),
+            'remote_spec': self.hdfs_spec(),
             'local_spec': self.local_spec(),
             'ip_addr': self.ip_addr(),
             'port': self.port(),
             'webhdfs_port': self.webhdfs_port(),
         }))
-        available = all([self.hdfs_spec(), self.ip_addr(), self.port(), self.webhdfs_port()])
+        available = all([
+            self.remote_spec() is not None,
+            self.ip_addr(),
+            self.port(),
+            self.webhdfs_port()])
         spec_matches = self._spec_match()
         ready = self.hdfs_ready()
 
@@ -77,10 +81,10 @@ class HDFSRequires(RelationBase):
 
     def _spec_match(self):
         local_spec = self.local_spec()
-        hdfs_spec = self.hdfs_spec()
-        if None in (local_spec, hdfs_spec):
+        remote_spec = self.remote_spec()
+        if None in (local_spec, remote_spec):
             return False
         for key, value in local_spec.items():
-            if value != hdfs_spec.get(key):
+            if value != remote_spec.get(key):
                 return False
         return True

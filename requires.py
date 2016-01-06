@@ -54,7 +54,7 @@ class HDFSRequires(RelationBase):
     def changed(self):
         conv = self.conversation()
         hookenv.log('Data: {}'.format({
-            'remote_spec': self.hdfs_spec(),
+            'remote_spec': self.remote_spec(),
             'local_spec': self.local_spec(),
             'ip_addr': self.ip_addr(),
             'port': self.port(),

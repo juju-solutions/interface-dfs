@@ -22,7 +22,7 @@ from charmhelpers.core import hookenv
 
 class HDFSRequires(RelationBase):
     scope = scopes.GLOBAL
-    auto_accessors = ['ip_addr', 'port', 'webhdfs-port']
+    auto_accessors = ['port', 'webhdfs-port']
 
     def set_local_spec(self, spec):
         """
@@ -45,6 +45,24 @@ class HDFSRequires(RelationBase):
         conv = self.conversation()
         return conv.get_remote('hdfs-ready', 'false').lower() == 'true'
 
+    def namenodes(self):
+        """
+        Returns a list of the NameNode host names.
+        """
+        conv = self.conversation()
+        return json.loads(conv.get_remote('namenodes', '[]'))
+
+    def hosts_map(self):
+        """
+        Return a mapping of IPs to host names suitable for use with
+        `jujubigdata.utils.update_etc_hosts`.
+
+        This will contain the IPs of the NameNode host names, to ensure that
+        they are resolvable.
+        """
+        conv = self.conversation()
+        return json.loads(conv.get_remote('hosts-map', '{}'))
+
     @hook('{requires:hdfs}-relation-joined')
     def joined(self):
         conv = self.conversation()
@@ -56,13 +74,15 @@ class HDFSRequires(RelationBase):
         hookenv.log('Data: {}'.format({
             'remote_spec': self.remote_spec(),
             'local_spec': self.local_spec(),
-            'ip_addr': self.ip_addr(),
+            'hosts-map': self.hosts_map(),
+            'namenodes': self.namenodes(),
             'port': self.port(),
             'webhdfs_port': self.webhdfs_port(),
         }))
         available = all([
             self.remote_spec() is not None,
-            self.ip_addr(),
+            self.hosts_map(),
+            self.namenodes(),
             self.port(),
             self.webhdfs_port()])
         spec_matches = self._spec_match()

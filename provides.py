@@ -34,9 +34,11 @@ class HDFSProvides(RelationBase):
         for conv in self.conversations():
             conv.set_remote('spec', json.dumps(spec))
 
-    def send_ip_addr(self, ip_addr):
+    def send_namenodes(self, namenodes):
         for conv in self.conversations():
-            conv.set_remote('ip_addr', ip_addr)
+            conv.set_remote(data={
+                'namenodes': json.dumps(namenodes),
+            })
 
     def send_ports(self, port, webhdfs_port):
         for conv in self.conversations():
@@ -48,3 +50,9 @@ class HDFSProvides(RelationBase):
     def send_ready(self, ready=True):
         for conv in self.conversations():
             conv.set_remote('hdfs-ready', ready)
+
+    def send_hosts_map(self, hosts_map):
+        for conv in self.conversations():
+            conv.set_remote(data={
+                'hosts-map': json.dumps(hosts_map),
+            })

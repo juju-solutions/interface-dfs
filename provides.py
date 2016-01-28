@@ -17,18 +17,18 @@ from charms.reactive import hook
 from charms.reactive import scopes
 
 
-class HDFSProvides(RelationBase):
+class DFSProvides(RelationBase):
     scope = scopes.UNIT
 
-    @hook('{provides:hdfs}-relation-joined')
+    @hook('{provides:dfs}-relation-joined')
     def joined(self):
         conv = self.conversation()
-        conv.set_state('{relation_name}.related')
+        conv.set_state('{relation_name}.clients')
 
-    @hook('{provides:hdfs}-relation-departed')
+    @hook('{provides:dfs}-relation-departed')
     def departed(self):
         conv = self.conversation()
-        conv.remove_state('{relation_name}.related')
+        conv.remove_state('{relation_name}.clients')
 
     def send_spec(self, spec):
         for conv in self.conversations():
@@ -49,10 +49,10 @@ class HDFSProvides(RelationBase):
 
     def send_ready(self, ready=True):
         for conv in self.conversations():
-            conv.set_remote('hdfs-ready', ready)
+            conv.set_remote('has_slave', ready)
 
     def send_hosts_map(self, hosts_map):
         for conv in self.conversations():
             conv.set_remote(data={
-                'hosts-map': json.dumps(hosts_map),
+                'etc_hosts': json.dumps(hosts_map),
             })

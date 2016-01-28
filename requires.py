@@ -20,7 +20,7 @@ from charms.reactive.bus import get_states
 from charmhelpers.core import hookenv
 
 
-class HDFSRequires(RelationBase):
+class DFSRequires(RelationBase):
     scope = scopes.GLOBAL
     auto_accessors = ['port', 'webhdfs-port']
 
@@ -43,7 +43,7 @@ class HDFSRequires(RelationBase):
 
     def hdfs_ready(self):
         conv = self.conversation()
-        return conv.get_remote('hdfs-ready', 'false').lower() == 'true'
+        return conv.get_remote('has_slave', '').lower() == 'true'
 
     def namenodes(self):
         """
@@ -61,14 +61,14 @@ class HDFSRequires(RelationBase):
         they are resolvable.
         """
         conv = self.conversation()
-        return json.loads(conv.get_remote('hosts-map', '{}'))
+        return json.loads(conv.get_remote('etc_hosts', '{}'))
 
-    @hook('{requires:hdfs}-relation-joined')
+    @hook('{requires:dfs}-relation-joined')
     def joined(self):
         conv = self.conversation()
         conv.set_state('{relation_name}.related')
 
-    @hook('{requires:hdfs}-relation-changed')
+    @hook('{requires:dfs}-relation-changed')
     def changed(self):
         conv = self.conversation()
         hookenv.log('Data: {}'.format({
@@ -93,7 +93,7 @@ class HDFSRequires(RelationBase):
 
         hookenv.log('States: {}'.format(set(get_states().keys())))
 
-    @hook('{requires:hdfs}-relation-departed')
+    @hook('{requires:dfs}-relation-departed')
     def departed(self):
         self.remove_state('{relation_name}.related')
         self.remove_state('{relation_name}.spec.mismatch')

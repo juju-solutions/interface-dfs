@@ -1,6 +1,6 @@
 # Overview
 
-This interface layer handles the communication with HDFS via the `hdfs` interface
+This interface layer handles the communication with HDFS via the `dfs` interface
 protocol.  It is intended for internal use within the Hadoop cluster charms.
 For typical usage, [interface-hadoop-plugin][] should be used instead.
 
@@ -28,7 +28,7 @@ This interface layer will set the following states, as appropriate:
   * `{relation_name}.ready` HDFS is fully ready to serve as a distributed file
     system.
 
-For example, a typical client would respond to `hdfs.ready`:
+For example, a typical client would respond to `{relation_name}.ready`:
 
 ```python
 @when('flume.installed', 'hdfs.ready')
@@ -44,7 +44,7 @@ A charm providing this interface is providing the HDFS service.
 
 This interface layer will set the following states, as appropriate:
 
-  * `{relation_name}.related` One or more clients of any type have
+  * `{relation_name}.clients` One or more clients of any type have
     been related.  The charm should call the following methods to provide the
     appropriate information to the clients:
       * `send_spec(spec)`
@@ -55,14 +55,14 @@ This interface layer will set the following states, as appropriate:
 Example:
 
 ```python
-@when('client.related')
+@when('namenode.clients')
 @when('hdfs.ready')
 def serve_client(client):
     client.send_spec(utils.build_spec())
     client.send_ports(dist_config.get('port'), dist_config.get('webhdfs_port'))
     client.send_ready(True)
 
-@when('client.related')
+@when('namenode.clients')
 @when_not('hdfs.ready')
 def check_ready(client):
     client.send_ready(False)

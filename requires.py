@@ -50,7 +50,11 @@ class DFSRequires(RelationBase):
         Returns a list of the NameNode host names.
         """
         conv = self.conversation()
-        return json.loads(conv.get_remote('namenodes', '[]'))
+        namenodes = json.loads(conv.get_remote('namenodes', '[]'))
+        if self.hdfs_ready() and not namenodes:
+            # temporary work-around for connecting with old, non-layered charms
+            namenodes = [unit.replace('/', '-') for unit in conv.units]
+        return namenodes
 
     def hosts_map(self):
         """

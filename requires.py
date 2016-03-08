@@ -89,11 +89,11 @@ class DFSRequires(RelationBase):
             self.namenodes(),
             self.port(),
             self.webhdfs_port()])
-        spec_matches = self._spec_match()
-        ready = self.hdfs_ready()
+        spec_mismatch = available and not self._spec_match()
+        ready = available and self.hdfs_ready()
 
-        conv.toggle_state('{relation_name}.spec.mismatch', available and not spec_matches)
-        conv.toggle_state('{relation_name}.ready', available and spec_matches and ready)
+        conv.toggle_state('{relation_name}.spec.mismatch', spec_mismatch)
+        conv.toggle_state('{relation_name}.ready', ready and not spec_mismatch)
 
         hookenv.log('States: {}'.format(set(get_states().keys())))
 

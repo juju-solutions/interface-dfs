@@ -15,18 +15,15 @@ DataNodes and SecondaryNameNodes register to provide additional services back.
 
 This interface layer will set the following states, as appropriate:
 
-  * `{relation_name}.related` The relation is established, but HDFS may not yet
+  * `{relation_name}.joined` The relation is established, but HDFS may not yet
     have provided any connection or service information.
 
-  * `{relation_name}.available` HDFS has provided its connection and service
-    information, but is not yet ready to serve as a distributed file system.
+  * `{relation_name}.ready` HDFS has provided its connection and service
+    information, and is ready to serve as a distributed file system.
     The provided information can be accessed via the following methods:
-      * `ip_addr()`
+      * `hosts_map()`
       * `port()`
       * `webhdfs_port()`
-
-  * `{relation_name}.ready` HDFS is fully ready to serve as a distributed file
-    system.
 
 For example, a typical client would respond to `{relation_name}.ready`:
 
@@ -48,7 +45,7 @@ This interface layer will set the following states, as appropriate:
     been related.  The charm should call the following methods to provide the
     appropriate information to the clients:
       * `send_spec(spec)`
-      * `send_ip_addr(ip_addr)`
+      * `send_hosts_map(hosts)`
       * `send_ports(port, webhdfs_port)`
       * `send_ready(ready)`
 

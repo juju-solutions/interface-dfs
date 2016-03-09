@@ -18,15 +18,12 @@ This interface layer will set the following states, as appropriate:
   * `{relation_name}.related` The relation is established, but HDFS may not yet
     have provided any connection or service information.
 
-  * `{relation_name}.available` HDFS has provided its connection and service
-    information, but is not yet ready to serve as a distributed file system.
+  * `{relation_name}.joined` HDFS has provided its connection and service
+    information, and is ready to serve as a distributed file system.
     The provided information can be accessed via the following methods:
       * `ip_addr()`
       * `port()`
       * `webhdfs_port()`
-
-  * `{relation_name}.ready` HDFS is fully ready to serve as a distributed file
-    system.
 
 For example, a typical client would respond to `{relation_name}.ready`:
 

@@ -22,7 +22,7 @@ from charmhelpers.core import hookenv
 
 class DFSRequires(RelationBase):
     scope = scopes.GLOBAL
-    auto_accessors = ['port', 'webhdfs-port']
+    auto_accessors = ['clustername', 'port', 'webhdfs-port']
 
     def set_local_spec(self, spec):
         """
@@ -79,6 +79,7 @@ class DFSRequires(RelationBase):
             'remote_spec': self.remote_spec(),
             'local_spec': self.local_spec(),
             'hosts-map': self.hosts_map(),
+            'clustername': self.clustername(),
             'namenodes': self.namenodes(),
             'port': self.port(),
             'webhdfs_port': self.webhdfs_port(),
@@ -86,6 +87,7 @@ class DFSRequires(RelationBase):
         available = all([
             self.remote_spec() is not None,
             self.hosts_map(),
+            self.clustername(),
             self.namenodes(),
             self.port(),
             self.webhdfs_port()])

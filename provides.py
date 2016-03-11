@@ -34,6 +34,10 @@ class DFSProvides(RelationBase):
         for conv in self.conversations():
             conv.set_remote('spec', json.dumps(spec))
 
+    def send_clustername(self, clustername):
+        for conv in self.conversations():
+            conv.set_remote('clustername', clustername)
+
     def send_namenodes(self, namenodes):
         for conv in self.conversations():
             conv.set_remote(data={

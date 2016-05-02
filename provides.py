@@ -32,7 +32,7 @@ class DFSProvides(RelationBase):
 
     def send_spec(self, spec):
         for conv in self.conversations():
-            conv.set_remote('spec', json.dumps(spec))
+            conv.set_remote('spec', json.dumps(spec, sort_keys=True))
 
     def send_clustername(self, clustername):
         for conv in self.conversations():
@@ -41,7 +41,7 @@ class DFSProvides(RelationBase):
     def send_namenodes(self, namenodes):
         for conv in self.conversations():
             conv.set_remote(data={
-                'namenodes': json.dumps(namenodes),
+                'namenodes': json.dumps(sorted(namenodes)),
             })
 
     def send_ports(self, port, webhdfs_port):
@@ -58,5 +58,5 @@ class DFSProvides(RelationBase):
     def send_hosts_map(self, hosts_map):
         for conv in self.conversations():
             conv.set_remote(data={
-                'etc_hosts': json.dumps(hosts_map),
+                'etc_hosts': json.dumps(hosts_map, sort_keys=True),
             })

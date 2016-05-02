@@ -32,6 +32,7 @@ class DFSRequires(RelationBase):
         """
         conv = self.conversation()
         conv.set_local('spec', json.dumps(spec))
+        self.changed()  # check for spec mismatch
 
     def remote_spec(self):
         conv = self.conversation()
